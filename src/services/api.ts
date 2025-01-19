@@ -86,7 +86,7 @@ export const eventService = {
 // Returns Services
 export const returnsService = {
   create: async (data: any) => {
-    const response = await api.post('/returns', data);
+    const response = await api.post('/returns/create', data);
     return response.data;
   },
 

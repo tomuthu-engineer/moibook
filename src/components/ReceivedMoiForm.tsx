@@ -1,36 +1,99 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Check } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
-import { receivedMoiSchema, type ReceivedMoiFormData } from '../schemas/forms';
+import { returnsService } from '../services/api';
+
+const REQUIRED_FIELDS = ['fullName', 'paymentAmount','date', 'area', 'district', 'state', ];
 
 const ReceivedMoiForm = () => {
   const navigate = useNavigate();
   const { eventId } = useParams();
+  const location = useLocation();
+  const dynamicFormFields = location.state?.formFields || {};
+
+  // Preprocess fields to include address components and always include required fields
+  const formFields = {
+    ...Object.fromEntries(REQUIRED_FIELDS.map((field) => [field, true])),
+    ...dynamicFormFields,
+  };
+
+  // Replace "address" with its nested fields
+  if (formFields.address) {
+    formFields.area = true;
+    formFields.district = true;
+    formFields.state = true;
+    delete formFields.address; // Remove "address" to avoid confusion
+  }
+
+  // Initialize default values
+  const defaultValues = Object.keys(formFields).reduce((acc, key) => {
+    if (formFields[key]) {
+      acc[key] = key === 'date' ? new Date().toISOString().split('T')[0] : ''; // Set today's date as default for 'date'
+    }
+    return acc;
+  }, {});
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting }
-  } = useForm<ReceivedMoiFormData>({
-    resolver: zodResolver(receivedMoiSchema),
-    defaultValues: {
-      date: new Date().toISOString().split('T')[0]
-    }
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues,
   });
 
-  const onSubmit = async (data: ReceivedMoiFormData) => {
+  const onSubmit = async (data: any) => {
     try {
-      // Handle form submission logic here
-      console.log(data);
+      // Extract address fields and remove them from the top-level data
+      const { area, state, district, ...formFields } = data;
+  
+      // Prepare the payload
+      const payload = {
+        eventId,
+        formFields: {
+          ...formFields,
+          address: { area, state, district },  // Nest the address fields
+        },
+      };
+  
+      // Make the API call
+      await returnsService.create(payload);
+  
       toast.success('Received moi entry saved successfully!', {
-        icon: <Check className="h-5 w-5 text-green-500" />
+        icon: <Check className="h-5 w-5 text-green-500" />,
       });
-      navigate('/');
     } catch (error) {
       toast.error('Failed to save received moi entry');
     }
+  };
+  
+
+  const renderField = (fieldName, fieldType = 'text') => {
+    const label = fieldName
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str) => str.toUpperCase());
+    return (
+      <div key={fieldName}>
+        <label
+          htmlFor={fieldName}
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          {label}
+        </label>
+        <input
+          {...register(fieldName)}
+          type={fieldType}
+          id={fieldName}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        />
+        {errors[fieldName] && (
+          <p className="mt-1 text-sm text-red-600">
+            {errors[fieldName]?.message}
+          </p>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -48,125 +111,11 @@ const ReceivedMoiForm = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <input
-              {...register('fullName')}
-              type="text"
-              id="fullName"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-            {errors.fullName && (
-              <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
-            )}
-          </div>
+          {Object.keys(formFields).map((key) => {
+            if (!formFields[key]) return null; // Render only fields marked as true
 
-          <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-              Payment Amount
-            </label>
-            <input
-              {...register('amount')}
-              type="number"
-              id="amount"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-            {errors.amount && (
-              <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-              Date
-            </label>
-            <input
-              {...register('date')}
-              type="date"
-              id="date"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-            {errors.date && (
-              <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="eventType" className="block text-sm font-medium text-gray-700 mb-1">
-              Event Type
-            </label>
-            <input
-              {...register('eventType')}
-              type="text"
-              id="eventType"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-            {errors.eventType && (
-              <p className="mt-1 text-sm text-red-600">{errors.eventType.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="area" className="block text-sm font-medium text-gray-700 mb-1">
-              Area/Village
-            </label>
-            <input
-              {...register('area')}
-              type="text"
-              id="area"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-            {errors.area && (
-              <p className="mt-1 text-sm text-red-600">{errors.area.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="district" className="block text-sm font-medium text-gray-700 mb-1">
-              District
-            </label>
-            <input
-              {...register('district')}
-              type="text"
-              id="district"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-            {errors.district && (
-              <p className="mt-1 text-sm text-red-600">{errors.district.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-              State
-            </label>
-            <input
-              {...register('state')}
-              type="text"
-              id="state"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-            {errors.state && (
-              <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <input
-              {...register('phoneNumber')}
-              type="tel"
-              id="phoneNumber"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-            {errors.phoneNumber && (
-              <p className="mt-1 text-sm text-red-600">{errors.phoneNumber.message}</p>
-            )}
-          </div>
+            return renderField(key, key === 'phoneNumber' ? 'tel' : key === 'date' ? 'date' : 'text');
+          })}
         </div>
 
         <div className="flex justify-end">
