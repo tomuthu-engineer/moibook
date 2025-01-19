@@ -1,11 +1,11 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Check } from 'lucide-react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import toast from 'react-hot-toast';
-import { createEventSchema, type CreateEventFormData } from '../schemas/forms';
-import { eventService } from '../services/api';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft, Check } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+import { createEventSchema, type CreateEventFormData } from "../schemas/forms";
+import { eventService } from "../services/api";
 
 interface FormField {
   id: string;
@@ -21,28 +21,54 @@ const CreateEventForm = () => {
     control,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
   } = useForm<CreateEventFormData>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
-      eventDate: new Date().toISOString().split('T')[0],
-      formFields: ['fullName', 'address', 'paymentAmount']
-    }
+      eventDate: new Date().toISOString().split("T")[0],
+      selectedFields: ["fullName", "address", "paymentAmount"],
+    },
   });
 
   const fields: FormField[] = [
-    { id: 'fullName', label: 'Full Name', enabled: true, required: true },
-    { id: 'address', label: 'Address', enabled: true, required: true },
-    { id: 'paymentAmount', label: 'Payment Amount', enabled: true, required: true },
-    { id: 'surname', label: 'Surname', enabled: false, required: false },
-    { id: 'fatherName', label: "Father's Name", enabled: false, required: false },
-    { id: 'motherName', label: "Mother's Name", enabled: false, required: false },
-    { id: 'phoneNumber', label: 'Phone Number', enabled: false, required: false },
-    { id: 'emailAddress', label: 'Email Address', enabled: false, required: false },
-    { id: 'occupation', label: 'Occupation', enabled: false, required: false },
-    { id: 'spouseName', label: 'Spouse Name', enabled: false, required: false },
+    { id: "fullName", label: "Full Name", enabled: true, required: true },
+    { id: "address", label: "Address", enabled: true, required: true },
+    {
+      id: "paymentAmount",
+      label: "Payment Amount",
+      enabled: true,
+      required: true,
+    },
+    { id: "surname", label: "Surname", enabled: false, required: false },
+    {
+      id: "fatherName",
+      label: "Father's Name",
+      enabled: false,
+      required: false,
+    },
+    {
+      id: "motherName",
+      label: "Mother's Name",
+      enabled: false,
+      required: false,
+    },
+    {
+      id: "phoneNumber",
+      label: "Phone Number",
+      enabled: false,
+      required: false,
+    },
+    {
+      id: "emailAddress",
+      label: "Email Address",
+      enabled: false,
+      required: false,
+    },
+    { id: "occupation", label: "Occupation", enabled: false, required: false },
+    { id: "spouseName", label: "Spouse Name", enabled: false, required: false },
   ];
 
+  const selectedFields = watch("selectedFields");
 
   const onSubmit = async (data: CreateEventFormData) => {
     try {
@@ -55,37 +81,39 @@ const CreateEventForm = () => {
           district: data.district,
           state: data.state,
         },
-        formFields: Object.fromEntries(
-          fields.map((field) => [field.id, data.formFields.includes(field.id)])
-        ),
+        formFields: fields.reduce((acc, field) => {
+          acc[field.id] = data.selectedFields.includes(field.id);
+          return acc;
+        }, {} as Record<string, boolean>),
       };
-      
-      console.log('payload',payload)
-      await eventService.create({
-        payload,
-      });
-  
-      toast.success('Event created successfully!', {
+
+      console.log(payload);
+      await eventService.create(
+        payload
+            );
+
+      toast.success("Event created successfully!", {
         icon: <Check className="h-5 w-5 text-green-500" />,
       });
+      navigate("/");
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to create event');
+      toast.error("Failed to create event");
     }
   };
-  
 
   return (
     <div>
       <div className="flex items-center mb-6">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           className="text-gray-600 hover:text-gray-900 flex items-center"
         >
           <ChevronLeft className="h-5 w-5" />
           <span>Back</span>
         </button>
-        <h1 className="text-2xl font-bold text-gray-900 ml-4">Create Event Entry Form</h1>
+        <h1 className="text-2xl font-bold text-gray-900 ml-4">
+          Create Event Entry Form
+        </h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -93,92 +121,122 @@ const CreateEventForm = () => {
         <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="eventName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="eventName"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Event Name
               </label>
               <input
-                {...register('eventName')}
+                {...register("eventName")}
                 type="text"
                 id="eventName"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               {errors.eventName && (
-                <p className="mt-1 text-sm text-red-600">{errors.eventName.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.eventName.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="eventDate"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Event Date
               </label>
               <input
-                {...register('eventDate')}
+                {...register("eventDate")}
                 type="date"
                 id="eventDate"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               {errors.eventDate && (
-                <p className="mt-1 text-sm text-red-600">{errors.eventDate.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.eventDate.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="eventType" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="eventType"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Event Type
               </label>
               <input
-                {...register('eventType')}
+                {...register("eventType")}
                 type="text"
                 id="eventType"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               {errors.eventType && (
-                <p className="mt-1 text-sm text-red-600">{errors.eventType.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.eventType.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="area" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="area"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Area/Village
               </label>
               <input
-                {...register('area')}
+                {...register("area")}
                 type="text"
                 id="area"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               {errors.area && (
-                <p className="mt-1 text-sm text-red-600">{errors.area.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.area.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="district" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="district"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 District
               </label>
               <input
-                {...register('district')}
+                {...register("district")}
                 type="text"
                 id="district"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               {errors.district && (
-                <p className="mt-1 text-sm text-red-600">{errors.district.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.district.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="state"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 State
               </label>
               <input
-                {...register('state')}
+                {...register("state")}
                 type="text"
                 id="state"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               {errors.state && (
-                <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.state.message}
+                </p>
               )}
             </div>
           </div>
@@ -186,9 +244,11 @@ const CreateEventForm = () => {
 
         {/* Toggle Fields Section */}
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Form Fields</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Form Fields
+          </h2>
           <Controller
-            name="formFields"
+            name="selectedFields"
             control={control}
             render={({ field }) => (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,7 +260,9 @@ const CreateEventForm = () => {
                     <span className="text-gray-700">{formField.label}</span>
                     <div className="flex items-center">
                       {formField.required ? (
-                        <span className="text-sm text-purple-600 mr-2">Required</span>
+                        <span className="text-sm text-purple-600 mr-2">
+                          Required
+                        </span>
                       ) : (
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -210,7 +272,9 @@ const CreateEventForm = () => {
                             onChange={(e) => {
                               const newValue = e.target.checked
                                 ? [...field.value, formField.id]
-                                : field.value.filter((id) => id !== formField.id);
+                                : field.value.filter(
+                                    (id) => id !== formField.id
+                                  );
                               field.onChange(newValue);
                             }}
                             disabled={formField.required}
@@ -233,7 +297,7 @@ const CreateEventForm = () => {
             disabled={isSubmitting}
             className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Submitting...' : 'Submit'}
+            {isSubmitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </form>

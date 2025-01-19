@@ -68,6 +68,7 @@ export const eventService = {
 
     create: async (data: any) => {
       const response = await api.post('/event/create', data);
+      console.log(response)
       return response.data;
     },
 
@@ -92,5 +93,17 @@ export const returnsService = {
   getTotalPayment: async () => {
     const response = await api.get('/returns/total-payment');
     return response.data;
+  },
+
+  getAll: async (eventId:any) => {
+    const response = await api.get(`/returns/event/${eventId}`);
+    return response.data;
+  },
+  downloadReport: async (format: 'pdf' | 'export-excel',eventId:any) => {
+    const response = await api.get(`/returns/event/${eventId}/export-excel`, {
+      responseType: 'blob'
+    });
+    return response.data;
   }
+
 };

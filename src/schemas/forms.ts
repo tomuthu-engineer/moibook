@@ -29,7 +29,7 @@ export const createEventSchema = z.object({
   area: z.string().min(1, 'Area is required'),
   district: z.string().min(1, 'District is required'),
   state: z.string().min(1, 'State is required'),
-  formFields: z.array(z.string())
+  selectedFields: z.array(z.string())
 });
 
 export type PaidMoiFormData = z.infer<typeof paidMoiSchema>;
