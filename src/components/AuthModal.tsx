@@ -15,13 +15,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type, onSuccess 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
+  const [response,setResponse]=useState()
 
   if (!isOpen) return null;
 
   const handleRequestOTP = async () => {
     try {
       setIsLoading(true);
-      await authService.requestOTP(phoneNumber);
+      const response = await authService.requestOTP(phoneNumber);
+      setResponse(response)
       setStep('otp');
       toast.success('OTP sent successfully!');
     } catch (error) {
@@ -108,6 +110,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, type, onSuccess 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Enter OTP
+              </label>
+              <label>
+              {response?.otp}
               </label>
               <div className="flex gap-2 justify-between">
                 {otp.map((digit, index) => (

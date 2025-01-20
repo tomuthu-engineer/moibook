@@ -26,6 +26,7 @@ api.interceptors.request.use(
 export const authService = {
   requestOTP: async (mobile: string) => {
     const response = await api.post('/auth/request-otp', { mobile });
+    console.log(response.data)
     return response.data;
   },
 
@@ -79,6 +80,7 @@ export const eventService = {
 
   getById: async (id: string) => {
     const response = await api.get(`/event/${id}`);
+    console.log(response.data)
     return response.data;
   }
 };
