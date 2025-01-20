@@ -15,7 +15,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [authType, setAuthType] = useState<'login' | 'signup'>('login');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState('John Doe');
+  const [userName, setUserName] = useState('welcome XXX');
 
   const openModal = (type: 'login' | 'signup') => {
     setAuthType(type);
