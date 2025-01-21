@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://13.126.181.228:5000/api';
+const BASE_URL = 'http://192.168.75.137:5000/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -33,6 +33,7 @@ export const authService = {
   verifyOTP: async (mobile: string, otp: string) => {
     const response = await api.post('/auth/verify-otp', { mobile, otp });
     const { accessToken, refreshToken } = response.data;
+    console.log(accessToken)
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
     return response.data;
@@ -53,6 +54,7 @@ export const investService = {
 
   getTotalAmount: async () => {
     const response = await api.get('/invest/total-amount');
+    console.log(response.data)
     return response.data;
   },
 
@@ -75,6 +77,7 @@ export const eventService = {
 
   getAll: async () => {
     const response = await api.get('/event/all');
+    console.log(response.data)
     return response.data;
   },
 
@@ -93,7 +96,8 @@ export const returnsService = {
   },
 
   getTotalPayment: async () => {
-    const response = await api.get('/returns/total-payment');
+    const response = await api.get('/returns/total-amount');
+    console.log(response.data)
     return response.data;
   },
 

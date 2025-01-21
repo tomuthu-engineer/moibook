@@ -70,7 +70,7 @@ const ViewAllReceivedMoiEvents = () => {
   const fetchEvents = async () => {
     try {
       const data = await eventService.getAll();
-      setEvents(data);
+      setEvents(data.events);
     } catch (error) {
       toast.error("Failed to fetch events");
     } finally {
